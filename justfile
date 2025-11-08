@@ -2,57 +2,70 @@
 _default:
     @just --list
 
+# Run all checks
 check: test lint
 
+# Compile the Rust extension in debug mode
 compile:
     @uv run maturin develop
 
+# Compile the Rust extension in release mode
 compile-release:
     @uv run maturin develop --release
 
+# Format the code
 fmt:
     @cargo fmt
     @uv run ruff format
 
+# Run all tests
 [group('test')]
 test: compile test-rs test-py
 
+# Run Rust tests
 [group('test')]
 test-rs:
     @cargo test --all-features
 
+# Run Python tests
 [group('test')]
 test-py:
     @uv run pytest
 
+# Run all linters
 [group('lint')]
 lint: lint-rs lint-py
 
+# Run Rust linters
 [group('lint')]
 lint-rs:
     @cargo clippy --all-targets --all-features -- -D warnings
     @cargo fmt -- --check
 
+# Run Python linters
 [group('lint')]
 lint-py:
     @uv run ty check
     @uv run ruff check
     @uv run ruff format --check
 
+# Auto-fix all issues
 [group('fix')]
 fix: fix-rs fix-py
 
+# Auto-fix Rust issues
 [group('fix')]
 fix-rs:
     @cargo clippy --all-targets --all-features --fix --allow-staged
     @just fmt
 
+# Auto-fix Python issues
 [group('fix')]
 fix-py:
     @uv run ruff check --fix
     @just fmt
 
-# Publish a new version. Usage: just publish patch|minor|major.
+# Publish a new version. Usage: just publish patch|minor|major
 [group('publish')]
 publish MODE:
     just _publish-check-mode "{{MODE}}"
