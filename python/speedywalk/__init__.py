@@ -5,7 +5,7 @@ import functools
 from collections.abc import Collection, Iterator
 from pathlib import Path
 
-from fastwalk import _core  # ty: ignore[unresolved-import]
+from speedywalk import _core  # ty: ignore[unresolved-import]
 
 PathLike = Path | str
 

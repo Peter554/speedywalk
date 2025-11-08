@@ -1,4 +1,4 @@
-# fastwalk
+# speedywalk
 
 Fast parallel directory walking for Python, powered by Rust.
 
@@ -12,21 +12,21 @@ Fast parallel directory walking for Python, powered by Rust.
 ## Installation
 
 ```bash
-pip install fastwalk
+pip install speedywalk
 ```
 
 ## Usage
 
 ```python
-import fastwalk
+import speedywalk
 
 # Find all Python files, respecting .gitignore
-for entry in fastwalk.walk(".", filters=["*.py"]):
+for entry in speedywalk.walk(".", filters=["*.py"]):
     if entry.is_file:
         print(entry.path)
 
 # Custom configuration
-for entry in fastwalk.walk(
+for entry in speedywalk.walk(
     ".",
     filters=["*.yaml", "*.yml"],
     ignore_dirs=["node_modules", "venv"],

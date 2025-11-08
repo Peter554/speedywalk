@@ -1,4 +1,4 @@
-import fastwalk
+import speedywalk
 
 
 def test_walk(tmp_path):
@@ -10,7 +10,7 @@ def test_walk(tmp_path):
     (tmp_path / "subdir" / "file3.txt").write_text("test")
 
     # Walk the directory
-    entries = list(fastwalk.walk(tmp_path))
+    entries = list(speedywalk.walk(tmp_path))
     paths = {entry.path_str for entry in entries}
 
     # Check that all expected paths are present

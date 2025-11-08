@@ -3,7 +3,7 @@ requires = ["maturin>=1.9,<2.0"]
 build-backend = "maturin"
 
 [project]
-name = "fastwalk"
+name = "speedywalk"
 description = "Fast parallel directory walking for Python, powered by Rust"
 authors = [{name = "Peter Byfield"}]
 readme = "README.md"
@@ -28,14 +28,14 @@ classifiers = [
 dynamic = ["version"]
 
 [project.urls]
-Homepage = "https://github.com/Peter554/fastwalk"
-Repository = "https://github.com/Peter554/fastwalk"
-Issues = "https://github.com/Peter554/fastwalk/issues"
+Homepage = "https://github.com/Peter554/speedywalk"
+Repository = "https://github.com/Peter554/speedywalk"
+Issues = "https://github.com/Peter554/speedywalk/issues"
 
 [tool.maturin]
 python-source = "python"
 features = ["pyo3/extension-module"]
-module-name = "fastwalk._core"
+module-name = "speedywalk._core"
 
 [dependency-groups]
 dev = [
