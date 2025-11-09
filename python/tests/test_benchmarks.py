@@ -1,10 +1,10 @@
-"""Benchmarks for speedywalk to prevent performance regressions."""
+"""Benchmarks for powerwalk to prevent performance regressions."""
 
 import os
 import random
 
 import pytest
-import speedywalk
+import powerwalk
 
 _LARGE_DIR_FILES_PER_DIR = 10
 _LARGE_DIR_SUBDIRS_PER_DIR = 5
@@ -43,7 +43,7 @@ def test_benchmark_walk_all(benchmark, large_directory):
     """Benchmark walking all files without any filter."""
 
     def walk_all():
-        return list(speedywalk.walk(large_directory))
+        return list(powerwalk.walk(large_directory))
 
     result = benchmark(walk_all)
     assert len(result) == 58591
@@ -53,7 +53,7 @@ def test_benchmark_walk_with_filter(benchmark, large_directory):
     """Benchmark walking with a single filter."""
 
     def walk_filtered():
-        return list(speedywalk.walk(large_directory, filter="**/*.py"))
+        return list(powerwalk.walk(large_directory, filter="**/*.py"))
 
     result = benchmark(walk_filtered)
     assert len(result) == 4854

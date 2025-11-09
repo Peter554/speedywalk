@@ -1,6 +1,6 @@
 from pathlib import Path
 
-import speedywalk
+import powerwalk
 
 
 def create_file(path, content=""):
@@ -19,7 +19,7 @@ def test_walk_basic(tmp_path):
     create_file(tmp_path / "subdir" / "file3.txt")
 
     # Walk the directory
-    entries = list(speedywalk.walk(tmp_path))
+    entries = list(powerwalk.walk(tmp_path))
     paths = {entry.path_str for entry in entries}
 
     # Check that all expected paths are present
@@ -47,7 +47,7 @@ def test_filter_single_string(tmp_path):
     create_file(tmp_path / "file3.py")
     create_file(tmp_path / "file4.md")
 
-    entries = list(speedywalk.walk(tmp_path, filter="*.py"))
+    entries = list(powerwalk.walk(tmp_path, filter="*.py"))
     paths = {entry.path_str for entry in entries}
 
     assert str(tmp_path / "file1.py") in paths
@@ -63,7 +63,7 @@ def test_filter_collection(tmp_path):
     create_file(tmp_path / "file3.py")
     create_file(tmp_path / "file4.md")
 
-    entries = list(speedywalk.walk(tmp_path, filter=["*.py", "*.md"]))
+    entries = list(powerwalk.walk(tmp_path, filter=["*.py", "*.md"]))
     paths = {entry.path_str for entry in entries}
 
     assert str(tmp_path / "file1.py") in paths
@@ -82,7 +82,7 @@ def test_filter_nested_directories(tmp_path):
     create_file(tmp_path / "level1/level2/file2.txt")
 
     # Use **/*.py to match files at any depth
-    entries = list(speedywalk.walk(tmp_path, filter="**/*.py"))
+    entries = list(powerwalk.walk(tmp_path, filter="**/*.py"))
     paths = {entry.path_str for entry in entries}
 
     assert str(tmp_path / "root.py") in paths
@@ -97,7 +97,7 @@ def test_exclude_single_pattern(tmp_path):
     create_file(tmp_path / "include/file1.txt")
     create_file(tmp_path / "exclude/file2.txt")
 
-    entries = list(speedywalk.walk(tmp_path, exclude="**/exclude"))
+    entries = list(powerwalk.walk(tmp_path, exclude="**/exclude"))
     paths = {entry.path_str for entry in entries}
 
     assert str(tmp_path / "include") in paths
@@ -112,7 +112,7 @@ def test_exclude_multiple_patterns(tmp_path):
     create_file(tmp_path / "skip1/file.txt")
     create_file(tmp_path / "skip2/file.txt")
 
-    entries = list(speedywalk.walk(tmp_path, exclude=["**/skip1", "**/skip2"]))
+    entries = list(powerwalk.walk(tmp_path, exclude=["**/skip1", "**/skip2"]))
     paths = {entry.path_str for entry in entries}
 
     assert str(tmp_path / "keep") in paths
@@ -128,7 +128,7 @@ def test_max_depth(tmp_path):
     create_file(tmp_path / "level1/level2/level2.txt")
     create_file(tmp_path / "level1/level2/level3/level3.txt")
 
-    entries = list(speedywalk.walk(tmp_path, max_depth=2))
+    entries = list(powerwalk.walk(tmp_path, max_depth=2))
     paths = {entry.path_str for entry in entries}
 
     assert str(tmp_path / "level0.txt") in paths
@@ -148,7 +148,7 @@ def test_min_depth(tmp_path):
     create_file(tmp_path / "level1/level1.txt")
     create_file(tmp_path / "level1/level2/level2.txt")
 
-    entries = list(speedywalk.walk(tmp_path, min_depth=2))
+    entries = list(powerwalk.walk(tmp_path, min_depth=2))
     paths = {entry.path_str for entry in entries}
 
     # Depth 1: should not be included
@@ -169,7 +169,7 @@ def test_ignore_hidden(tmp_path):
     create_file(tmp_path / ".hidden_dir/file.txt")
 
     # With ignore_hidden=True (default)
-    entries = list(speedywalk.walk(tmp_path, ignore_hidden=True))
+    entries = list(powerwalk.walk(tmp_path, ignore_hidden=True))
     paths = {entry.path_str for entry in entries}
 
     assert str(tmp_path / "visible.txt") in paths
@@ -178,7 +178,7 @@ def test_ignore_hidden(tmp_path):
     assert str(tmp_path / ".hidden_dir") not in paths
 
     # With ignore_hidden=False
-    entries = list(speedywalk.walk(tmp_path, ignore_hidden=False))
+    entries = list(powerwalk.walk(tmp_path, ignore_hidden=False))
     paths = {entry.path_str for entry in entries}
 
     assert str(tmp_path / "visible.txt") in paths
@@ -195,7 +195,7 @@ def test_gitignore_respected(tmp_path):
     create_file(tmp_path / "ignored_dir/file.txt")
 
     # With respect_git_ignore=True (default) - note: ignore_hidden=True so .gitignore won't appear
-    entries = list(speedywalk.walk(tmp_path, respect_git_ignore=True))
+    entries = list(powerwalk.walk(tmp_path, respect_git_ignore=True))
     paths = {entry.path_str for entry in entries}
 
     assert str(tmp_path / "kept.txt") in paths
@@ -203,7 +203,7 @@ def test_gitignore_respected(tmp_path):
     assert str(tmp_path / "ignored_dir") not in paths
 
     # With respect_git_ignore=False - ignored files should now appear (but not .gitignore as it's hidden)
-    entries = list(speedywalk.walk(tmp_path, respect_git_ignore=False))
+    entries = list(powerwalk.walk(tmp_path, respect_git_ignore=False))
     paths = {entry.path_str for entry in entries}
 
     assert str(tmp_path / "kept.txt") in paths
@@ -217,7 +217,7 @@ def test_max_filesize(tmp_path):
     create_file(tmp_path / "medium.txt", "x" * 100)
     create_file(tmp_path / "large.txt", "x" * 1000)
 
-    entries = list(speedywalk.walk(tmp_path, max_filesize=150))
+    entries = list(powerwalk.walk(tmp_path, max_filesize=150))
     file_paths = {entry.path_str for entry in entries if entry.is_file}
 
     assert str(tmp_path / "small.txt") in file_paths
@@ -231,7 +231,7 @@ def test_empty_filters(tmp_path):
     create_file(tmp_path / "file2.txt")
     create_file(tmp_path / "file3.md")
 
-    entries = list(speedywalk.walk(tmp_path, filter=[]))
+    entries = list(powerwalk.walk(tmp_path, filter=[]))
     paths = {entry.path_str for entry in entries}
 
     assert str(tmp_path / "file1.py") in paths
@@ -244,7 +244,7 @@ def test_empty_ignore_dirs(tmp_path):
     create_file(tmp_path / "dir1/file.txt")
     create_file(tmp_path / "dir2/file.txt")
 
-    entries = list(speedywalk.walk(tmp_path, exclude=[]))
+    entries = list(powerwalk.walk(tmp_path, exclude=[]))
     paths = {entry.path_str for entry in entries}
 
     assert str(tmp_path / "dir1") in paths
@@ -258,7 +258,7 @@ def test_path_and_path_str_properties(tmp_path):
     test_file = tmp_path / "test.txt"
     create_file(test_file)
 
-    entries = list(speedywalk.walk(tmp_path))
+    entries = list(powerwalk.walk(tmp_path))
     for entry in entries:
         if entry.path_str.endswith("test.txt"):
             assert isinstance(entry.path, Path)
@@ -278,7 +278,7 @@ def test_combined_filter_and_exclude(tmp_path):
     create_file(tmp_path / "exclude/file.txt")
 
     # Use **/*.py to match all .py files, exclude the exclude directory
-    entries = list(speedywalk.walk(tmp_path, filter="**/*.py", exclude="**/exclude"))
+    entries = list(powerwalk.walk(tmp_path, filter="**/*.py", exclude="**/exclude"))
     paths = {entry.path_str for entry in entries}
 
     assert str(tmp_path / "include/file.py") in paths
@@ -298,7 +298,7 @@ def test_filter_literal_separator(tmp_path):
     create_file(tmp_path / "subdir/nested.txt")
 
     # *.py should only match root-level .py files
-    entries = list(speedywalk.walk(tmp_path, filter="*.py"))
+    entries = list(powerwalk.walk(tmp_path, filter="*.py"))
     paths = {entry.path_str for entry in entries}
 
     assert str(tmp_path / "root.py") in paths
@@ -306,7 +306,7 @@ def test_filter_literal_separator(tmp_path):
     assert str(tmp_path / "root.txt") not in paths
 
     # **/*.py should match .py files at any depth
-    entries = list(speedywalk.walk(tmp_path, filter="**/*.py"))
+    entries = list(powerwalk.walk(tmp_path, filter="**/*.py"))
     paths = {entry.path_str for entry in entries}
 
     assert str(tmp_path / "root.py") in paths
@@ -325,7 +325,7 @@ def test_exclude_literal_separator(tmp_path):
     create_file(tmp_path / "subdir/skip.txt")
 
     # skip.txt should only exclude root-level skip.txt
-    entries = list(speedywalk.walk(tmp_path, exclude="skip.txt"))
+    entries = list(powerwalk.walk(tmp_path, exclude="skip.txt"))
     paths = {entry.path_str for entry in entries}
 
     assert str(tmp_path / "keep.txt") in paths
@@ -334,7 +334,7 @@ def test_exclude_literal_separator(tmp_path):
     assert str(tmp_path / "subdir/skip.txt") in paths  # Not excluded (in subdir)
 
     # **/skip.txt should exclude skip.txt at any depth
-    entries = list(speedywalk.walk(tmp_path, exclude="**/skip.txt"))
+    entries = list(powerwalk.walk(tmp_path, exclude="**/skip.txt"))
     paths = {entry.path_str for entry in entries}
 
     assert str(tmp_path / "keep.txt") in paths
@@ -352,7 +352,7 @@ def test_filter_and_exclude_with_literal_separator(tmp_path):
     create_file(tmp_path / "subdir/deep/test.py")
 
     # Use **/*.py to match all .py files, but exclude test.py at root only
-    entries = list(speedywalk.walk(tmp_path, filter="**/*.py", exclude="test.py"))
+    entries = list(powerwalk.walk(tmp_path, filter="**/*.py", exclude="test.py"))
     paths = {entry.path_str for entry in entries}
 
     assert str(tmp_path / "root.py") in paths
@@ -362,7 +362,7 @@ def test_filter_and_exclude_with_literal_separator(tmp_path):
     assert str(tmp_path / "subdir/deep/test.py") in paths  # Not excluded (in subdir)
 
     # Use **/test.py to exclude test.py at any depth
-    entries = list(speedywalk.walk(tmp_path, filter="**/*.py", exclude="**/test.py"))
+    entries = list(powerwalk.walk(tmp_path, filter="**/*.py", exclude="**/test.py"))
     paths = {entry.path_str for entry in entries}
 
     assert str(tmp_path / "root.py") in paths

@@ -3,7 +3,7 @@ requires = ["maturin>=1.9,<2.0"]
 build-backend = "maturin"
 
 [project]
-name = "speedywalk"
+name = "powerwalk"
 description = "Fast parallel directory walking for Python, powered by Rust"
 authors = [{name = "Peter Byfield"}]
 readme = "README.md"
@@ -28,15 +28,15 @@ classifiers = [
 dynamic = ["version"]
 
 [project.urls]
-Homepage = "https://peter554.github.io/speedywalk/"
-Repository = "https://github.com/Peter554/speedywalk"
-Issues = "https://github.com/Peter554/speedywalk/issues"
-Documentation = "https://peter554.github.io/speedywalk/"
+Homepage = "https://peter554.github.io/powerwalk/"
+Repository = "https://github.com/Peter554/powerwalk"
+Issues = "https://github.com/Peter554/powerwalk/issues"
+Documentation = "https://peter554.github.io/powerwalk/"
 
 [tool.maturin]
 python-source = "python"
 features = ["pyo3/extension-module"]
-module-name = "speedywalk._core"
+module-name = "powerwalk._core"
 
 [dependency-groups]
 dev = [
