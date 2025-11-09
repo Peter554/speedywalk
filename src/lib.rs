@@ -125,14 +125,10 @@ fn walk(
     // Apply exclude filter if patterns are provided
     if let Some(ref glob) = exclude_glob_matcher {
         let glob = glob.clone();
-        let root_for_exclude = root_path.clone();
+        let root_path = root_path.clone();
         builder.filter_entry(move |entry| {
             // Exclude entries that match any exclude pattern
-            // Use relative path for glob matching
-            let relative_path = entry
-                .path()
-                .strip_prefix(&root_for_exclude)
-                .unwrap_or(entry.path());
+            let relative_path = entry.path().strip_prefix(&root_path).unwrap();
             !glob.is_match(relative_path)
         });
     }
@@ -141,28 +137,23 @@ fn walk(
     // Buffer size of 10000 provides good throughput while limiting memory usage
     let (sender, receiver) = channel::bounded(10000);
 
-    // Clone root path for use in the closure
-    let root_for_matching = root_path.clone();
-
     // Spawn a thread to do the walking
     thread::spawn(move || {
         builder.build_parallel().run(|| {
             let sender = sender.clone();
             let filter_glob_matcher = filter_glob_matcher.clone();
-            let root_for_matching = root_for_matching.clone();
+            let root_path = root_path.clone();
             Box::new(move |result| {
                 match result {
                     Ok(entry) => {
                         let path = entry.path();
 
-                        // Get relative path for glob matching
-                        let relative_path = path.strip_prefix(&root_for_matching).unwrap_or(path);
-
                         // Apply glob filters if present
-                        if let Some(ref glob) = filter_glob_matcher
-                            && !glob.is_match(relative_path)
-                        {
-                            return ignore::WalkState::Continue;
+                        if let Some(ref glob) = filter_glob_matcher {
+                            let relative_path = path.strip_prefix(&root_path).unwrap();
+                            if !glob.is_match(relative_path) {
+                                return ignore::WalkState::Continue;
+                            }
                         }
 
                         let file_type = entry.file_type();
