@@ -17,8 +17,8 @@ _PathLike = Path | str
 def walk(
     root: _PathLike,
     *,
-    filters: str | Collection[str] = (),
-    ignore_dirs: _PathLike | Collection[_PathLike] = (),
+    filter: str | Collection[str] = (),
+    exclude: str | Collection[str] = (),
     ignore_hidden: bool = True,
     respect_git_ignore: bool = True,
     respect_global_git_ignore: bool = True,
@@ -38,9 +38,10 @@ def walk(
     ## Arguments
 
     - `root`: The root directory to start walking from.
-    - `filters`: Glob patterns to filter files (any matching pattern includes the file).
-      Example: `["*.py", "*.txt"]`
-    - `ignore_dirs`: Directories to ignore (absolute or relative to root).
+    - `filter`: Glob pattern(s) to filter files (any matching pattern includes the file).
+      Example: `"*.py"` or `["*.py", "*.txt"]`
+    - `exclude`: Glob pattern(s) to exclude files and directories.
+      Example: `"**/node_modules"` or `["**/__pycache__", "**/node_modules"]`
     - `ignore_hidden`: If True, ignore hidden files and directories.
     - `respect_git_ignore`: If True, respect .gitignore files.
     - `respect_global_git_ignore`: If True, respect global gitignore.
@@ -63,29 +64,29 @@ def walk(
     ## Example
 
     ```python
-    for entry in walk(".", filters=["*.py"], max_depth=2):
+    for entry in walk(".", filter="*.py", max_depth=2):
         if entry.is_file:
             print(entry.path)
+
+    # Exclude patterns
+    for entry in walk(".", filter="*.py", exclude=["**/test_*", "**/__pycache__"]):
+        print(entry.path)
     ```
     """
     # Convert root to string
     root_str = str(root)
 
-    # Convert filters to list
-    filters_list = [filters] if isinstance(filters, str) else list(filters)
+    # Convert filter to list
+    filter_list = [filter] if isinstance(filter, str) else list(filter)
 
-    # Convert ignore_dirs to list of strings
-    ignore_dirs_list = (
-        [str(ignore_dirs)]
-        if isinstance(ignore_dirs, _PathLike)
-        else [str(d) for d in ignore_dirs]
-    )
+    # Convert exclude to list
+    exclude_list = [exclude] if isinstance(exclude, str) else list(exclude)
 
     # Call the Rust implementation which returns an iterator
     walk_iterator = _core.walk(
         root_str,
-        filters_list,
-        ignore_dirs_list,
+        filter_list,
+        exclude_list,
         ignore_hidden,
         respect_git_ignore,
         respect_global_git_ignore,

@@ -49,8 +49,8 @@ impl WalkIterator {
 #[allow(clippy::too_many_arguments)]
 fn walk(
     root: String,
-    filters: Vec<String>,
-    ignore_dirs: Vec<String>,
+    filter: Vec<String>,
+    exclude: Vec<String>,
     ignore_hidden: bool,
     respect_git_ignore: bool,
     respect_global_git_ignore: bool,
@@ -88,11 +88,11 @@ fn walk(
         builder.max_filesize(Some(size));
     }
 
-    // Build glob matcher for filters
-    let glob_matcher = if !filters.is_empty() {
+    // Build glob matcher for filter
+    let filter_glob_matcher = if !filter.is_empty() {
         let mut glob_builder = GlobSetBuilder::new();
-        for filter in &filters {
-            let glob = Glob::new(filter)
+        for pattern in &filter {
+            let glob = Glob::new(pattern)
                 .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?;
             glob_builder.add(glob);
         }
@@ -103,29 +103,27 @@ fn walk(
         None
     };
 
-    // Add ignore directories - collect all paths first
-    let ignore_paths: Vec<PathBuf> = ignore_dirs
-        .into_iter()
-        .map(|ignore_dir| {
-            if PathBuf::from(&ignore_dir).is_absolute() {
-                PathBuf::from(ignore_dir)
-            } else {
-                root_path.join(ignore_dir)
-            }
-        })
-        .collect();
+    // Build glob matcher for exclude patterns
+    let exclude_glob_matcher = if !exclude.is_empty() {
+        let mut glob_builder = GlobSetBuilder::new();
+        for pattern in &exclude {
+            let glob = Glob::new(pattern)
+                .map_err(|e| PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string()))?;
+            glob_builder.add(glob);
+        }
+        Some(Arc::new(glob_builder.build().map_err(|e| {
+            PyErr::new::<pyo3::exceptions::PyValueError, _>(e.to_string())
+        })?))
+    } else {
+        None
+    };
 
-    // Apply a single filter that checks all ignore paths
-    if !ignore_paths.is_empty() {
+    // Apply exclude filter if patterns are provided
+    if let Some(ref glob) = exclude_glob_matcher {
+        let glob = glob.clone();
         builder.filter_entry(move |entry| {
-            // Filter out directories that match any ignore path
-            if entry.file_type().is_some_and(|ft| ft.is_dir()) {
-                !ignore_paths
-                    .iter()
-                    .any(|ignore_path| entry.path() == ignore_path)
-            } else {
-                true
-            }
+            // Exclude entries that match any exclude pattern
+            !glob.is_match(entry.path())
         });
     }
 
@@ -137,15 +135,15 @@ fn walk(
     thread::spawn(move || {
         builder.build_parallel().run(|| {
             let sender = sender.clone();
-            let glob_matcher = glob_matcher.clone();
+            let filter_glob_matcher = filter_glob_matcher.clone();
             Box::new(move |result| {
                 match result {
                     Ok(entry) => {
                         let path = entry.path();
 
                         // Apply glob filters if present
-                        if let Some(ref glob_set) = glob_matcher
-                            && !glob_set.is_match(path)
+                        if let Some(ref glob) = filter_glob_matcher
+                            && !glob.is_match(path)
                         {
                             return ignore::WalkState::Continue;
                         }

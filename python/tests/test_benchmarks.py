@@ -40,7 +40,7 @@ def large_directory(tmp_path_factory):
 
 
 def test_benchmark_walk_all(benchmark, large_directory):
-    """Benchmark walking all files without any filters."""
+    """Benchmark walking all files without any filter."""
 
     def walk_all():
         return list(speedywalk.walk(large_directory))
@@ -53,7 +53,7 @@ def test_benchmark_walk_with_filter(benchmark, large_directory):
     """Benchmark walking with a single filter."""
 
     def walk_filtered():
-        return list(speedywalk.walk(large_directory, filters="*.py"))
+        return list(speedywalk.walk(large_directory, filter="*.py"))
 
     result = benchmark(walk_filtered)
     assert len(result) == 4854
