@@ -1,14 +1,14 @@
-# fast-walk
+# speedywalk
 
-[![PyPI](https://img.shields.io/pypi/v/fast-walk.svg)](https://pypi.org/project/fast-walk/)
-[![CI](https://github.com/Peter554/fast-walk/actions/workflows/check.yml/badge.svg)](https://github.com/Peter554/fast-walk/actions/workflows/check.yml)
+[![PyPI](https://img.shields.io/pypi/v/speedywalk.svg)](https://pypi.org/project/speedywalk/)
+[![CI](https://github.com/Peter554/speedywalk/actions/workflows/check.yml/badge.svg)](https://github.com/Peter554/speedywalk/actions/workflows/check.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Documentation](https://img.shields.io/badge/docs-latest-blue.svg)](https://peter554.github.io/fast-walk/)
+[![Documentation](https://img.shields.io/badge/docs-latest-blue.svg)](https://peter554.github.io/speedywalk/)
 
 Fast parallel directory walking for Python, powered by Rust.
 
-- Find the repo [here](https://github.com/Peter554/fast-walk).
-- Read the docs [here](https://peter554.github.io/fast-walk/).
+- Find the repo [here](https://github.com/Peter554/speedywalk).
+- Read the docs [here](https://peter554.github.io/speedywalk/).
 
 ## Features
 
@@ -20,21 +20,21 @@ Fast parallel directory walking for Python, powered by Rust.
 ## Installation
 
 ```bash
-pip install fast-walk
+pip install speedywalk
 ```
 
 ## Quick Start
 
 ```python
-import fast_walk
+import speedywalk
 
 # Find all Python files, respecting .gitignore
-for entry in fast_walk.walk(".", filters=["*.py"]):
+for entry in speedywalk.walk(".", filters=["*.py"]):
     if entry.is_file:
         print(entry.path)
 
 # Custom configuration
-for entry in fast_walk.walk(
+for entry in speedywalk.walk(
     ".",
     filters=["*.yaml", "*.yml"],
     ignore_dirs=["node_modules", "venv"],

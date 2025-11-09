@@ -9,7 +9,7 @@ import functools
 from collections.abc import Collection, Iterator
 from pathlib import Path
 
-from fast_walk import _core  # ty: ignore[unresolved-import]
+from speedywalk import _core  # ty: ignore[unresolved-import]
 
 _PathLike = Path | str
 
