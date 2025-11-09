@@ -28,7 +28,7 @@ classifiers = [
 dynamic = ["version"]
 
 [project.urls]
-Homepage = "https://github.com/Peter554/speedywalk"
+Homepage = "https://peter554.github.io/speedywalk/"
 Repository = "https://github.com/Peter554/speedywalk"
 Issues = "https://github.com/Peter554/speedywalk/issues"
 
