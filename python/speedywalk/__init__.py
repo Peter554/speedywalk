@@ -49,8 +49,8 @@ class DirEntry:
 def walk(
     root: PathLike,
     *,
-    filters: Collection[str] = (),
-    ignore_dirs: Collection[PathLike] = (),
+    filters: str | Collection[str] = (),
+    ignore_dirs: PathLike | Collection[PathLike] = (),
     ignore_hidden: bool = True,
     respect_git_ignore: bool = True,
     respect_global_git_ignore: bool = True,
@@ -98,10 +98,14 @@ def walk(
     root_str = str(root)
 
     # Convert filters to list
-    filters_list = list(filters)
+    filters_list = [filters] if isinstance(filters, str) else list(filters)
 
     # Convert ignore_dirs to list of strings
-    ignore_dirs_list = [str(d) for d in ignore_dirs]
+    ignore_dirs_list = (
+        [str(ignore_dirs)]
+        if isinstance(ignore_dirs, PathLike)
+        else [str(d) for d in ignore_dirs]
+    )
 
     # Call the Rust implementation which returns an iterator
     walk_iterator = _core.walk(
