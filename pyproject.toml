@@ -31,6 +31,7 @@ dynamic = ["version"]
 Homepage = "https://peter554.github.io/speedywalk/"
 Repository = "https://github.com/Peter554/speedywalk"
 Issues = "https://github.com/Peter554/speedywalk/issues"
+Documentation = "https://peter554.github.io/speedywalk/"
 
 [tool.maturin]
 python-source = "python"
