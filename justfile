@@ -30,7 +30,12 @@ test-rs:
 # Run Python tests
 [group('test')]
 test-py:
-    @uv run pytest
+    @uv run pytest --benchmark-skip
+
+# Run benchmarks
+[group('test')]
+benchmark: compile-release
+    @uv run pytest --benchmark-only --benchmark-autosave --benchmark-compare --benchmark-group-by=func --benchmark-columns mean,stddev,rounds,iterations
 
 # Run all linters
 [group('lint')]

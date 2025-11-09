@@ -75,6 +75,15 @@ wheels = [
 ]
 
 [[package]]
+name = "py-cpuinfo"
+version = "9.0.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/37/a8/d832f7293ebb21690860d2e01d8115e5ff6f2ae8bbdc953f0eb0fa4bd2c7/py-cpuinfo-9.0.0.tar.gz", hash = "sha256:3cdbbf3fac90dc6f118bfd64384f309edeadd902d7c8fb17f02ffa1fc3f49690", size = 104716, upload-time = "2022-10-25T20:38:06.303Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/e0/a9/023730ba63db1e494a271cb018dcd361bd2c917ba7004c3e49d5daf795a2/py_cpuinfo-9.0.0-py3-none-any.whl", hash = "sha256:859625bc251f64e21f077d099d4162689c762b5d6a4c3c97553d56241c9674d5", size = 22335, upload-time = "2022-10-25T20:38:27.636Z" },
+]
+
+[[package]]
 name = "pygments"
 version = "2.19.2"
 source = { registry = "https://pypi.org/simple" }
@@ -99,6 +108,19 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/da/1d/eb34f286b164c5e431a810a38697409cca1112cee04b287bb56ac486730b/pytest-9.0.0.tar.gz", hash = "sha256:8f44522eafe4137b0f35c9ce3072931a788a21ee40a2ed279e817d3cc16ed21e", size = 1562764, upload-time = "2025-11-08T17:25:33.34Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/72/99/cafef234114a3b6d9f3aaed0723b437c40c57bdb7b3e4c3a575bc4890052/pytest-9.0.0-py3-none-any.whl", hash = "sha256:e5ccdf10b0bac554970ee88fc1a4ad0ee5d221f8ef22321f9b7e4584e19d7f96", size = 373364, upload-time = "2025-11-08T17:25:31.811Z" },
+]
+
+[[package]]
+name = "pytest-benchmark"
+version = "5.2.2"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "py-cpuinfo" },
+    { name = "pytest" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/d1/ff/82fd8c413eae2f9a3abb0eb8a13d73f2223bfae7b84cf318a3d9c278965a/pytest_benchmark-5.2.2.tar.gz", hash = "sha256:af6717b86a29a9fcd79eda8745883eff3a7fdd626326a6639db0d6cf4d334a89", size = 339608, upload-time = "2025-11-07T13:07:11.555Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/34/b0/56b035d19bf0848d3ef0ac428f2852aebed027e33fc0cb389686d3a91a12/pytest_benchmark-5.2.2-py3-none-any.whl", hash = "sha256:00a57d6b5c04e09052890bf04a0417192dd74427c7386a65e3db0a375753dc77", size = 44913, upload-time = "2025-11-07T13:07:09.435Z" },
 ]
 
 [[package]]
@@ -135,6 +157,7 @@ source = { editable = "." }
 dev = [
     { name = "maturin" },
     { name = "pytest" },
+    { name = "pytest-benchmark" },
     { name = "ruff" },
     { name = "ty" },
 ]
@@ -145,6 +168,7 @@ dev = [
 dev = [
     { name = "maturin", specifier = ">=1.9.6" },
     { name = "pytest", specifier = ">=8.4.2" },
+    { name = "pytest-benchmark", specifier = ">=5.2.2" },
     { name = "ruff", specifier = ">=0.14.4" },
     { name = "ty", specifier = ">=0.0.1a25" },
 ]
