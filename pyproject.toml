@@ -40,6 +40,7 @@ module-name = "speedywalk._core"
 [dependency-groups]
 dev = [
     "maturin>=1.9.6",
+    "pdoc>=16.0.0",
     "pytest>=8.4.2",
     "pytest-benchmark>=5.2.2",
     "pytest-codspeed>=4.2.0",

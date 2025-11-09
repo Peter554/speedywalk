@@ -70,6 +70,16 @@ fix-py:
     @uv run ruff check --fix
     @just fmt
 
+# Build documentation
+[group('docs')]
+docs-build: compile
+    @uv run pdoc speedywalk -o docs/
+
+# Serve documentation locally
+[group('docs')]
+docs-serve: compile
+    @uv run pdoc speedywalk
+
 # Publish a new version. Usage: just publish patch|minor|major
 [group('publish')]
 publish MODE:
