@@ -72,6 +72,7 @@ fn walk(
         .git_global(respect_global_git_ignore)
         .git_exclude(respect_git_exclude)
         .ignore(respect_ignore)
+        .require_git(false)
         .follow_links(follow_symlinks)
         .threads(threads);
 
@@ -102,17 +103,26 @@ fn walk(
         None
     };
 
-    // Add ignore directories
-    for ignore_dir in ignore_dirs {
-        let ignore_path = if PathBuf::from(&ignore_dir).is_absolute() {
-            PathBuf::from(ignore_dir)
-        } else {
-            root_path.join(ignore_dir)
-        };
+    // Add ignore directories - collect all paths first
+    let ignore_paths: Vec<PathBuf> = ignore_dirs
+        .into_iter()
+        .map(|ignore_dir| {
+            if PathBuf::from(&ignore_dir).is_absolute() {
+                PathBuf::from(ignore_dir)
+            } else {
+                root_path.join(ignore_dir)
+            }
+        })
+        .collect();
+
+    // Apply a single filter that checks all ignore paths
+    if !ignore_paths.is_empty() {
         builder.filter_entry(move |entry| {
-            // Only filter directories that match this ignore path
+            // Filter out directories that match any ignore path
             if entry.file_type().is_some_and(|ft| ft.is_dir()) {
-                entry.path() != ignore_path
+                !ignore_paths
+                    .iter()
+                    .any(|ignore_path| entry.path() == ignore_path)
             } else {
                 true
             }
