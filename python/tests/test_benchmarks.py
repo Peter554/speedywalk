@@ -3,8 +3,8 @@
 import os
 import random
 
-import pytest
 import powerwalk
+import pytest
 
 _LARGE_DIR_FILES_PER_DIR = 10
 _LARGE_DIR_SUBDIRS_PER_DIR = 5

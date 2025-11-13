@@ -18,7 +18,7 @@ def test_walk_basic(tmp_path):
     (tmp_path / "subdir").mkdir()
     create_file(tmp_path / "subdir" / "file3.txt")
 
-    # Walk the directory
+    # Walk the directory - use ignore_errors() for backward compatibility
     entries = list(powerwalk.walk(tmp_path))
     paths = {entry.path_str for entry in entries}
 
@@ -370,3 +370,51 @@ def test_filter_and_exclude_with_literal_separator(tmp_path):
     assert str(tmp_path / "subdir/nested.py") in paths
     assert str(tmp_path / "subdir/test.py") not in paths  # Excluded
     assert str(tmp_path / "subdir/deep/test.py") not in paths  # Excluded
+
+
+def test_error_handling(tmp_path):
+    """Test that errors are returned as Error objects."""
+    create_file(tmp_path / "accessible.txt")
+    restricted_dir = tmp_path / "restricted"
+    restricted_dir.mkdir()
+    create_file(restricted_dir / "file.txt")
+
+    # Make the directory inaccessible (this may not work on all systems)
+    import os
+    import stat
+
+    try:
+        os.chmod(restricted_dir, 0o000)
+
+        # Walk and collect all results with ignore_errors=False to get Error objects
+        results = list(powerwalk.walk(tmp_path, ignore_errors=False))
+
+        # Check that we get DirEntry objects
+        entries = [r for r in results if isinstance(r, powerwalk.DirEntry)]
+        assert len(entries) >= 1  # At least accessible.txt
+
+        # Check if we got any errors (depends on permissions)
+        errors = [r for r in results if isinstance(r, powerwalk.Error)]
+        # Note: Error behavior depends on OS and permissions
+        for error in errors:
+            assert isinstance(error.message, str)
+            assert error.path == restricted_dir
+            assert error.path_str == str(restricted_dir)
+            assert error.line is None
+            assert error.depth == 1
+    finally:
+        # Restore permissions for cleanup
+        os.chmod(restricted_dir, stat.S_IRWXU)
+
+
+def test_ignore_errors(tmp_path):
+    """Test that ignore_errors() only yields DirEntry objects."""
+    create_file(tmp_path / "file1.txt")
+    create_file(tmp_path / "file2.txt")
+
+    # Collect all results using ignore_errors()
+    entries = list(powerwalk.walk(tmp_path))
+
+    # All results should be DirEntry objects
+    assert all(isinstance(entry, powerwalk.DirEntry) for entry in entries)
+    assert len(entries) >= 2

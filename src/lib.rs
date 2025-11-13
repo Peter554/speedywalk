@@ -20,9 +20,22 @@ pub struct DirEntry {
     is_symlink: bool,
 }
 
+#[pyclass]
+#[derive(Clone)]
+pub struct Error {
+    #[pyo3(get)]
+    message: String,
+    #[pyo3(get)]
+    path: Option<String>,
+    #[pyo3(get)]
+    line: Option<u64>,
+    #[pyo3(get)]
+    depth: Option<usize>,
+}
+
 enum WalkResult {
-    Entry(DirEntry),
-    Error(String),
+    DirEntry(DirEntry),
+    Error(Error),
 }
 
 #[pyclass]
@@ -36,10 +49,10 @@ impl WalkIterator {
         slf
     }
 
-    fn __next__(&mut self) -> PyResult<Option<DirEntry>> {
+    fn __next__(&mut self, py: Python<'_>) -> PyResult<Option<PyObject>> {
         match self.receiver.recv().ok() {
-            Some(WalkResult::Entry(entry)) => Ok(Some(entry)),
-            Some(WalkResult::Error(err)) => Err(PyErr::new::<pyo3::exceptions::PyOSError, _>(err)),
+            Some(WalkResult::DirEntry(entry)) => Ok(Some(Py::new(py, entry)?.into_any())),
+            Some(WalkResult::Error(error)) => Ok(Some(Py::new(py, error)?.into_any())),
             None => Ok(None),
         }
     }
@@ -163,10 +176,18 @@ fn walk(
                             is_dir: file_type.as_ref().is_some_and(|ft| ft.is_dir()),
                             is_symlink: file_type.as_ref().is_some_and(|ft| ft.is_symlink()),
                         };
-                        let _ = sender.send(WalkResult::Entry(dir_entry));
+                        let _ = sender.send(WalkResult::DirEntry(dir_entry));
                     }
                     Err(err) => {
-                        let _ = sender.send(WalkResult::Error(err.to_string()));
+                        let (path_opt, line_opt, depth) = extract_error_info(&err);
+
+                        let error = Error {
+                            path: path_opt,
+                            line: line_opt,
+                            depth,
+                            message: err.to_string(),
+                        };
+                        let _ = sender.send(WalkResult::Error(error));
                     }
                 }
                 ignore::WalkState::Continue
@@ -180,7 +201,28 @@ fn walk(
 #[pymodule]
 fn _core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<DirEntry>()?;
+    m.add_class::<Error>()?;
     m.add_class::<WalkIterator>()?;
     m.add_function(wrap_pyfunction!(walk, m)?)?;
     Ok(())
+}
+
+// Recursively extract information from the ignore::Error
+// Similar to how is_io() recursively checks variants
+fn extract_error_info(err: &ignore::Error) -> (Option<String>, Option<u64>, Option<usize>) {
+    match err {
+        ignore::Error::WithLineNumber { line, err } => {
+            let (path, _, depth) = extract_error_info(err);
+            (path, Some(*line), depth)
+        }
+        ignore::Error::WithPath { path, err } => {
+            let (_, line, depth) = extract_error_info(err);
+            (Some(path.to_string_lossy().to_string()), line, depth)
+        }
+        ignore::Error::WithDepth { depth, err } => {
+            let (path, line, _) = extract_error_info(err);
+            (path, line, Some(*depth))
+        }
+        _ => (None, None, None),
+    }
 }

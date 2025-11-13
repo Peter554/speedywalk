@@ -8,10 +8,51 @@ import dataclasses
 import functools
 from collections.abc import Collection, Iterator
 from pathlib import Path
+from typing import Literal, overload
 
 from powerwalk import _core  # ty: ignore[unresolved-import]
 
 _PathLike = Path | str
+
+
+@overload
+def walk(
+    root: _PathLike,
+    *,
+    filter: str | Collection[str] = ...,
+    exclude: str | Collection[str] = ...,
+    ignore_hidden: bool = ...,
+    respect_git_ignore: bool = ...,
+    respect_global_git_ignore: bool = ...,
+    respect_git_exclude: bool = ...,
+    respect_ignore: bool = ...,
+    follow_symlinks: bool = ...,
+    max_depth: int | None = ...,
+    min_depth: int | None = ...,
+    max_filesize: int | None = ...,
+    threads: int = ...,
+    ignore_errors: Literal[True] = ...,
+) -> Iterator[DirEntry]: ...
+
+
+@overload
+def walk(
+    root: _PathLike,
+    *,
+    filter: str | Collection[str] = ...,
+    exclude: str | Collection[str] = ...,
+    ignore_hidden: bool = ...,
+    respect_git_ignore: bool = ...,
+    respect_global_git_ignore: bool = ...,
+    respect_git_exclude: bool = ...,
+    respect_ignore: bool = ...,
+    follow_symlinks: bool = ...,
+    max_depth: int | None = ...,
+    min_depth: int | None = ...,
+    max_filesize: int | None = ...,
+    threads: int = ...,
+    ignore_errors: Literal[False],
+) -> "Iterator[DirEntry | Error]": ...
 
 
 def walk(
@@ -29,7 +70,8 @@ def walk(
     min_depth: int | None = None,
     max_filesize: int | None = None,
     threads: int = 0,
-) -> Iterator[DirEntry]:
+    ignore_errors: bool = True,
+):
     """Walk a directory tree in parallel, yielding DirEntry objects.
 
     This function uses Rust's `ignore` crate for fast parallel directory traversal
@@ -52,26 +94,28 @@ def walk(
     - `min_depth`: Minimum depth before yielding entries.
     - `max_filesize`: Maximum file size in bytes to consider.
     - `threads`: Number of threads to use (0 for automatic, based on CPU count).
+    - `ignore_errors`: If True (default), silently ignore errors and only yield DirEntry objects.
+      If False, yield both DirEntry and Error objects.
 
-    ## Yields
+    ## Returns
 
-    `DirEntry` objects representing files and directories found during the walk.
-
-    ## Raises
-
-    `OSError` if an error occurs while walking (e.g., permission denied).
+    An iterator that yields `DirEntry` objects (if `ignore_errors=True`) or
+    `DirEntry | Error` objects (if `ignore_errors=False`).
 
     ## Example
 
     ```python
-    # Match .py files at any depth (use ** for recursive matching)
-    for entry in walk(".", filter="**/*.py", max_depth=2):
-        if entry.is_file:
-            print(entry.path)
-
-    # Match only root-level .py files (no ** means current directory only)
-    for entry in walk(".", filter="*.py"):
+    # Default: ignore errors and only process successful entries
+    for entry in walk(".", filter="**/*.py"):
         print(entry.path)
+
+    # Handle errors during directory traversal
+    for result in walk(".", filter="**/*.py", ignore_errors=False):
+        match result:
+            case DirEntry():
+                print(result.path)
+            case Error():
+                print(f"Error at {result.path}: {result.message}")
 
     # Exclude patterns
     for entry in walk(".", filter="**/*.py", exclude=["**/test_*", "**/__pycache__"]):
@@ -104,9 +148,12 @@ def walk(
         threads,
     )
 
-    # Wrap each core entry in a DirEntry and yield
-    for core_entry in walk_iterator:
-        yield DirEntry(_core_entry=core_entry)
+    dir_walker = _DirWalker(walk_iterator)
+
+    if ignore_errors:
+        return _ErrorIgnoringDirWalker(dir_walker)
+    else:
+        return dir_walker
 
 
 @dataclasses.dataclass(frozen=True)
@@ -143,3 +190,80 @@ class DirEntry:
     def is_symlink(self) -> bool:
         """True if this entry is a symbolic link."""
         return self._core_entry.is_symlink
+
+
+@dataclasses.dataclass(frozen=True)
+class Error:
+    """An error returned by walk().
+
+    Represents an error encountered during directory traversal.
+    """
+
+    _core_error: _core.Error
+
+    @functools.cached_property
+    def message(self) -> str:
+        """The error message."""
+        return self._core_error.message
+
+    @functools.cached_property
+    def path(self) -> Path | None:
+        """The path where the error occurred, if available."""
+        return Path(self._core_error.path) if self._core_error.path else None
+
+    @functools.cached_property
+    def path_str(self) -> str | None:
+        """The path where the error occurred as a string, if available."""
+        return self._core_error.path
+
+    @functools.cached_property
+    def line(self) -> int | None:
+        """The line number in a file where the error occurred, if available.
+
+        This is typically set for errors related to parsing ignore files.
+        """
+        return self._core_error.line
+
+    @functools.cached_property
+    def depth(self) -> int | None:
+        """The depth at which the error occurred.
+
+        Depth is measured in terms of the number of directories from the root.
+        """
+        return self._core_error.depth
+
+
+class _DirWalker(Iterator[DirEntry | Error]):
+    """Iterator that yields both DirEntry objects and Error objects.
+
+    Use this when you want to handle errors during directory traversal.
+    """
+
+    def __init__(self, walk_iterator: _core.WalkIterator):
+        self._walk_iterator = walk_iterator
+
+    def __iter__(self) -> _DirWalker:
+        return self
+
+    def __next__(self) -> DirEntry | Error:
+        result = next(self._walk_iterator)
+        if isinstance(result, _core.DirEntry):
+            return DirEntry(_core_entry=result)
+        else:
+            return Error(_core_error=result)
+
+
+class _ErrorIgnoringDirWalker(Iterator[DirEntry]):
+    """Iterator that only yields DirEntry objects, silently ignoring errors."""
+
+    def __init__(self, dir_walker: _DirWalker):
+        self._dir_walker = dir_walker
+
+    def __iter__(self) -> _ErrorIgnoringDirWalker:
+        return self
+
+    def __next__(self) -> DirEntry:
+        while True:
+            result = next(self._dir_walker)
+            if isinstance(result, DirEntry):
+                return result

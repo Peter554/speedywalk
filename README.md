@@ -35,10 +35,18 @@ pip install powerwalk
 ```python
 import powerwalk
 
-# Find all Python files, respecting .gitignore
+# Find all Python files (errors ignored by default)
 for entry in powerwalk.walk(".", filter="**/*.py"):
     if entry.is_file:
         print(entry.path)
+
+# Handle errors during traversal
+for result in powerwalk.walk(".", filter="**/*.py", ignore_errors=False):
+    match result:
+        case powerwalk.DirEntry():
+            print(result.path)
+        case powerwalk.Error():
+            print(f"Error at {result.path}: {result.message}")
 
 # Custom configuration with filtering and exclusion
 for entry in powerwalk.walk(
